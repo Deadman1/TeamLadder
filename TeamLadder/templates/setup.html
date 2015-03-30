@@ -1,0 +1,34 @@
+
+{%block body%}
+
+<h1>First-time setup</h1>
+
+Welcome to CLOT!  This setup should only be completed by the site administrator.  Make sure to complete this before revealing the URL of your website to the public.
+<br />
+
+<ul>
+    <li>You must be a WarLight member to set up a CLOT site.  </li>
+    <li>The form below asks for your WarLight e-mail address and API Token.  You can get your API token by visiting <a href="http://warlight.net/API/GetAPIToken">http://warlight.net/API/GetAPIToken</a>.  If this link says "No auth found", you must first sign into your WarLight.net account.</li>
+    <li>Your e-mail address and API Token are never revealed to visitors of this website.  However, they are stored in your database, so you should take care not to give database access to anyone.  If you ever suspect someone else has learned your API Token, you should change your WarLight account password immediately as this re-randomizes your API Token.</li>
+</ul>
+
+<form action="/setup" method="post">
+    <table>
+        {% for field in form %}
+        <tr>
+            <td>
+                {{ field.label }}:
+            </td>
+            <td>
+                {{ field }}
+            </td>
+
+        </tr>    
+        {% endfor %}
+        <tr>
+            <td colspan="2"><input type="submit" value="Submit"></td>
+        </tr>
+    </table>
+</form>
+
+{% endblock %}

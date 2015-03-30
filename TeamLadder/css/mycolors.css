@@ -1,0 +1,26 @@
+table.table thead
+{
+	background: #6E6568
+}
+
+div.panel-default>.panel-heading {
+	background: #800000	
+}
+
+div.panel-default {
+	background-color: #303030
+}
+
+div.latest-games {
+	padding: 0px
+}
+
+div.latest-games table tr td {
+	padding-left: 4px;
+	padding-right: 4px;
+}
+
+div.panel-heading ul.pagination {
+	margin-top: 0px;
+	margin-bottom: 0px
+}

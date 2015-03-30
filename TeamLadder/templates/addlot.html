@@ -1,0 +1,29 @@
+{%extends "templates/base.html"%}
+{%block body%}
+
+<a href="/">&lt;&lt; Home</a>
+<h1>Add a LOT (Ladder or Tournament)</h1>
+
+<form  method="post">
+    <table cellspacing="9">
+        {% for field in form %}
+        <tr>
+            <td>
+                {{ field.label }}:
+            </td>
+            <td>
+                {{ field }}
+            </td>
+
+        </tr>    
+        {% endfor %}
+
+        <tr>
+            <td colspan="2" style="text-align: center">
+                <input type="submit" value="Create">
+            </td>
+        </tr>
+    </table>
+</form>
+
+{%endblock%}

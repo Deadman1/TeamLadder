@@ -1,0 +1,9 @@
+{%extends "templates/base.html"%}
+{%block body%}
+
+<h1>Leave</h1>
+
+You have left the ladder or tournament <a href="/lot/{{container.lot.key.id()}}">{{container.lot.name|escape}}</a>. Sorry to see you go.
+
+
+{%endblock%}

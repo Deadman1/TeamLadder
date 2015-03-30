@@ -1,0 +1,20 @@
+﻿body
+{
+    background-color: #c0c6ce;
+    color: black;
+    font-family: Verdana;
+    max-width: 1000px;
+    padding-left: 10px;
+}
+
+
+table
+{
+    border-collapse: collapse;
+}
+
+td
+{
+    padding-left: 9px;
+    padding-right: 9px;
+}

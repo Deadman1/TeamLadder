@@ -1,0 +1,184 @@
+    <div class="container-fluid">
+      <div class="row row-offcanvas row-offcanvas-left">
+        <!--/main-->
+        <div class="col-xs-12 col-sm-12" data-spy="scroll" data-target="#sidebar-nav">
+          <div class="row">
+          	<div class="col-xs-12 col-sm-6 col-lg-3">
+              <div class="panel panel-default">
+              	<div class="panel-heading">
+                  <h4>Top Ranked Players</h4>
+                </div>
+                <div class="panel-body latest-games">
+                  <div class="list-group">
+		            <table class="table table-bordered">
+		                <thead>
+		                    <tr>
+		                        <td>Rank</td>
+		                        <td>Player</td>
+		                        <td>Rating</td>
+		                    </tr>
+		                </thead>
+		                {%for player in container.playersSorted[:10]  %}		                
+		                <tr>        
+		                    <td>{{ container.playerRankOrBlank(player.key.id())  }}</td>
+		                    <td>
+		                        <a href="/player/playerId={{player.key.id()}}&&lotId={{container.lot.key.id()}}">{{player.name|escape}}</a>
+		                    </td>
+		                    <td>{{ container.lot.playerRating.get(player.key.id(), 0)|int }}</td>
+		                </tr>		                
+		                {%endfor%}
+		            </table>
+		            <a href="/allplayers/{{container.lot.key.id()}}" class="pull-right">View all</a>	
+                  </div>
+                 </div>
+              </div>
+             
+              <div class="panel panel-default">
+              	<div class="panel-heading">
+                  <h4>Players Currently Joined</h4>
+                </div>
+                <div class="panel-body latest-games">
+                  <div class="list-group">
+		            <table class="table table-bordered">
+		                <thead>
+		                    <tr>
+		                        <td>Rank</td>
+		                        <td>Player</td>
+		                        <td>Rating</td>
+		                    </tr>
+		                </thead>
+		                {%for player in container.playersSorted  %}
+		                {%if player.key.id() in container.lot.playersParticipating %} 
+		                <tr>        
+		                    <td>{{ container.playerRankOrBlank(player.key.id())  }}</td>
+		                    <td>
+		                        <a href="/player/playerId={{player.key.id()}}&&lotId={{container.lot.key.id()}}">{{player.name|escape}}</a>
+		                    </td>
+		                    <td>{{ container.lot.playerRating.get(player.key.id(), 0)|int }}</td>
+		                </tr>
+		                {%endif%}
+		                {%endfor%}
+		            </table>
+                  </div>
+                 </div>
+               </div>
+             
+             </div>
+              
+            <div class="col-xs-12 col-sm-6 col-lg-5">
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  <ul class="pagination pagination-lg pager pull-right" id="myPager"></ul>
+                  <h4>Latest Games</h4>
+                </div>
+                <div class="panel-body latest-games">
+                  <div class="list-group">
+			            <table class="table table-bordered">
+			                <thead>
+			                    <tr>
+			                        <td><b>Game</b></td>
+			                        <td><b>Winner</b></td>
+			                        <td><b>Date Ended</b></td>
+			                    </tr>
+			                </thead>
+							<tbody id="myTable">
+							{% set gamesFinished = container.getFinishedGames()%}
+			                {%for game in gamesFinished|sort(attribute='dateEnded', reverse=True)%}  
+			                <tr>
+			                    <td>
+			                        <a href="http://warlight.net/MultiPlayer?GameID={{ game.wlnetGameID}}">{{ container.players[game.players[0]].name|escape }} vs {{ container.players[game.players[1]].name|escape }}</a>
+			                    </td>
+			                    <td>			                        
+			                        {{ container.players[game.winner].name|escape }}			                        
+			                    </td>
+			                    <td>
+			                    	{{ game.dateEnded.strftime('%Y-%m-%d %H:%M') }}
+			                    </td>
+			                </tr>
+			                {%endfor%}
+							</tbody>
+			            </table>
+                  </div>
+                </div>
+                <!--/panel-body-->
+              </div>
+              <!--/panel-->              
+            </div>
+            <!--/col-->
+            <!-- Templates and FAQs -->
+            <div class="col-xs-12 col-sm-6 col-lg-4">              
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  <h4>FAQs</h4>
+                </div>
+                <div class="panel-body">
+                  <div id="content">
+		            <ul class="nav nav-tabs" id="myTab">
+					  <li class="active"><a data-target="#about" data-toggle="tab">About</a></li>
+					  <li><a data-target="#gameallocation" data-toggle="tab">Game Allocation</a></li>
+					  <li><a data-target="#ranking" data-toggle="tab">Player Ranking</a></li>
+					  <li><a data-target="#other" data-toggle="tab">Other</a></li>
+					</ul>
+		
+					<div class="tab-content">
+					  <div class="tab-pane active" id="about">
+					  	<br/>				  	
+		  				<b>What is this all about?</b>
+		  				<p>This is a custom ladder based on the Medium Earth template. It features randomized bonuses. Every game will have bonuses which are different by +1 or -1 or equal to their original values</p> 
+					  	<br/>			  	
+					  </div>
+					  <div class="tab-pane" id="gameallocation">	
+						<br/>				  	
+		  				<b>How are games allocated?</b>
+		  				<p>Games are allocated amongst players currently joined on the ladder. The ladder tries to pair similar players together.</p> 
+					  	<br/>					  	
+					  	<b>How frequently are games scheduled?</b>
+					  	<p>Games are scheduled every 3 hours.</p>
+					  	<br/>					  	
+					  	<b>How is my next opponent determined?</b>
+					  	<p>Let your current rank be R. From the list  of players currently active on the ladder, you may be randomly assigned an opponent within R-10 to R+10 ranks.</p>
+					  	<br/>
+					  	<b>How often can I play the same opponent?</b>
+					  	<p>Two players cannot play each more than once in 3 days.</p>
+					  	<br/>
+					  </div>
+					  <div class="tab-pane" id="ranking">					  	
+					  	<br/>				  	
+		  				<b>How are players ranked?</b>
+		  				<p>Players are ranked on this ladder using the TrueSkill Ranking algorithm. This system awards points only at the end of a game and does not make any further updates based on future results.</p>
+					  </div>
+					  <div class="tab-pane" id="other">
+					  	<br/>
+					  	<b>If I forget to leave the ladder, what will happen?</b>
+					  	<p>You will be allocated a game in the next cycle. If you will lose that game on autoboot, you will be removed from the ladder, so as to prevent further game allocations.</p>
+					  	<br/>
+					  </div>
+					</div>
+				  </div>      
+                </div>
+                <!--/panel-body-->
+              </div>
+              <!--/panel-->
+              <div class="panel panel-default">
+                <div class="panel-heading">                  
+                  <h4>Templates Used</h4>
+                </div>
+                <div class="panel-body">
+					<ul>
+						<li>
+							<a href="https://www.warlight.net/MultiPlayer?TemplateID=620619">620619</a> : Medium Earth with randomized bonuses.
+						</li>						
+					</ul>	           
+                </div>
+                <!--/panel-body-->
+              </div>
+              <!--/panel-->
+            </div>
+            <!--/row-->
+          </div>
+          <!--/.row-->
+        </div>
+      </div>
+      <!--/.container-->
+    </div>
+    <!--/.page-container-->

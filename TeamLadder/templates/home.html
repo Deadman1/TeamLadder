@@ -1,0 +1,21 @@
+{%extends "templates/base.html"%}
+{%block body%}
+
+<h1>CLOT Home</h1>
+
+{%if lots|length == 0%}
+    The CLOT owner has yet to create any ladders or tournaments.  Please check back later!
+{%else%}
+
+Please choose which ladder or tournament you are interested in:<br /><br />
+<ul>
+    {%for lot in lots%}
+    <li>
+        <a href="/lot/{{lot.key.id()}}">{{lot.name|escape}}</a>
+    </li>
+    {%endfor%}
+
+</ul>
+
+{%endif%}
+{%endblock%}

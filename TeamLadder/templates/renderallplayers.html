@@ -1,0 +1,39 @@
+<div class="container-fluid">
+      <div class="row row-offcanvas row-offcanvas-left">
+        <!--/main-->
+        <div class="col-xs-12 col-sm-12" data-spy="scroll" data-target="#sidebar-nav">
+          <div class="row">
+          	<div class="col-xs-12 col-sm-6 col-lg-3">
+              <div class="panel panel-default">
+		        <a href="/lot/{{container.lot.key.id()}}"> Back to Ladder</a>
+              	<div class="panel-heading">
+                  <h4>Rankings</h4>
+                </div>
+                <div class="panel-body latest-games">
+                  <div class="list-group">
+		            <table class="table table-bordered">
+		                <thead>
+		                    <tr>
+		                        <td>Rank</td>
+		                        <td>Player</td>
+		                        <td>Rating</td>
+		                    </tr>
+		                </thead>
+		                {%for player in container.playersSorted  %}		                
+		                <tr>        
+		                    <td>{{ container.playerRankOrBlank(player.key.id())  }}</td>
+		                    <td>
+		                        <a href="/player/playerId={{player.key.id()}}&&lotId={{container.lot.key.id()}}">{{player.name|escape}}</a>
+		                    </td>
+		                    <td>{{ container.lot.playerRating.get(player.key.id(), 0)|int }}</td>
+		                </tr>		                
+		                {%endfor%}
+		            </table>	
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+</div>

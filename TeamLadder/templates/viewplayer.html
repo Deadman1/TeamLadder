@@ -1,0 +1,97 @@
+{%extends "templates/base.html"%}
+{%block body%}
+<table>
+   <tr>
+      <td>
+         <a href="/lot/{{container.lot.key.id()}}"> Back to Ladder</a>
+      </td>
+   </tr>
+   <tr>
+      <td>
+         <h1>{{player.name|escape}}</h1>
+      </td>
+      <td style="padding-left:40">
+         <a href="http://warlight.net/Profile?p={{player.inviteToken}}">{{player.name|escape}}'s Profile</a><br />
+      </td>
+   </tr>
+</table>
+First joined: {{player.created}}<br /><br/>
+Playing in up to {{ player.numberOfGamesAtOnce}} games at a time. <br/> <br/>
+{% if currentPlayer is not none and currentPlayer.key.id() == player.key.id()%} 
+<table>
+   <tr>
+      <td> Choose number of games</td>
+      <td style="padding-left:10px">
+         <div class="dropdown">
+            <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-expanded="true">
+            {{player.numberOfGamesAtOnce}}
+            <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+               {%for i in range(1,10) %}
+               <li role="presentation"><a role="menuitem" tabindex="-1" 
+                  href="/choice/playerId={{player.key.id()}}&&lotId={{container.lot.key.id()}}&&numberOfGames={{i}}">{{i}}</a></li>
+               {%endfor%}
+            </ul>
+         </div>         
+      </td>
+   </tr>
+</table>
+{% endif %}
+<br/>
+<br/>
+<div class="col-xs-12 col-sm-6 col-lg-5">
+   <div class="panel panel-default">
+      <div class="panel-heading">
+         <ul class="pagination pagination-lg pager pull-right" id="myPager"></ul>
+         <h4>Latest Games</h4>
+      </div>
+      <div class="panel-body latest-games">
+         <div class="list-group">
+            <table class="table table-bordered">
+               <thead>
+                  <tr>
+                     <td><b>Game</b></td>
+                     <td><b>Winner</b></td>
+                     <td><b>Date</b></td>
+                  </tr>
+               </thead>
+               <tbody id="myTable">
+                  {%for game in games|sort(attribute='dateCreated', reverse=True)%}
+                  {%if game.winner is none%}
+                  <tr>
+                     <td>
+                        <a href="http://warlight.net/MultiPlayer?GameID={{ game.wlnetGameID}}">{{ container.players[game.players[0]].name|escape }} vs {{ container.players[game.players[1]].name|escape }}</a>
+                     </td>
+                     <td>
+                     </td>
+                     <td>
+                        {{ game.dateCreated.strftime('%Y-%m-%d %H:%M') }}
+                     </td>
+                  </tr>
+                  {%endif%}
+                  {%endfor%}
+                  {%for game in games|sort(attribute='dateCreated', reverse=True)%}
+                  {%if game.winner is not none%}
+                  <tr {%if player.key.id() == game.winner %} style="background-color: #053805" {% else %} style="background-color: #300" {%endif%}>
+                  <td>
+                     <a href="http://warlight.net/MultiPlayer?GameID={{ game.wlnetGameID}}">{{ container.players[game.players[0]].name|escape }} vs {{ container.players[game.players[1]].name|escape }}</a>
+                  </td>
+                  <td>		                        
+                     {{ container.players[game.winner].name|escape }}
+                  </td>
+                  <td>
+                     {{ game.dateCreated.strftime('%Y-%m-%d %H:%M') }}
+                  </td>
+                  </tr>
+                  {%endif%}
+                  {%endfor%}
+               </tbody>
+            </table>
+         </div>
+      </div>
+      <!--/panel-body-->
+   </div>
+   <!--/panel-->              
+</div>
+{%endblock%}

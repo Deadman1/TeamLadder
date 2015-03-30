@@ -1,0 +1,23 @@
+{%block body%}
+
+<h1>Test Page: {{container.lot.name|escape}}</h1>
+
+You wound up here because api.TestMode is enabled.  This page can be used to test your local cron/clot code locally with fake data.<br /><br />
+
+<a href="/">&lt;&lt; Home</a> | <a href="/test/{{container.lot.key.id()}}">Refresh</a><br /><br />
+
+<form method="post">
+    <input type="submit" name="ClearData" value="Clear Data" />
+    <input type="submit" name="RunCron" value="Run Cron" />
+    <input type="submit" name="FlushCache" value="Flush Cache" />
+    <input type="submit" name="Test" value="Test" />
+    <br />
+    <input type="text" name="NumPlayers" style="width: 30px" value="16" /> <input type="submit" name="AddPlayers" value="Add Players" />
+</form>
+
+{{ message }}
+
+{{ renderedlot }}
+
+
+{%endblock%}

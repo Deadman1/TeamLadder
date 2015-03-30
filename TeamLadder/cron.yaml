@@ -1,0 +1,17 @@
+﻿#You can control here how often your website will check for updates to games.
+#The default is 6 hours. You can adjust it, but do NOT set this to a value 
+#lower than 3 hours for multi-day games. Setting this lower than 3 hours puts 
+#strain on the WarLight.net website, since it has to call the API to get the status of 
+#every active game in your CLOT every time it runs.  Calling the APIs too often
+#will get you in trouble.
+
+#For real-time games, you can set this as low as 10 minutes.  However, if you do
+#this, be sure and enable auto-boot for your games, and take care that you only 
+#query games that need querying. For example, don't query games once they're finished, 
+#and if a game gets stuck in the lobby be sure and delete it so you don't query 
+#the same games over and over every 10 minutes for hours on end unnecessarilly
+
+cron:
+- url: /cron
+  schedule: every 3 hours  
+
