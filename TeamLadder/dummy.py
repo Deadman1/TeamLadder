@@ -6,7 +6,7 @@ ret = """{
   "state" : "WaitingForPlayers",
   "name" : "Randomized ladder : Beren Erchamion vs M...",
   "numberOfTurns" : "-1",
-  "templateID" : "620619",
+  "templateID" : "708081",
   "players" : [ {
     "id" : "314032996",
     "name" : "Beren Erchamion",

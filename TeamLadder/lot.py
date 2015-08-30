@@ -1,6 +1,6 @@
 ﻿from main import ndb, get_template, flatten
 from games import Game
-from players import Player
+from teams import Team
 from google.appengine.api import memcache
 
 import logging
@@ -12,11 +12,11 @@ class LOT(ndb.Model):
     name = ndb.StringProperty(required=True)
     dateCreated = ndb.DateTimeProperty(auto_now_add=True)
     dateEnded = ndb.DateTimeProperty()
-    playersParticipating = ndb.IntegerProperty(repeated=True) #list of player IDs
-    playerRanks = ndb.IntegerProperty(repeated=True) #List of player IDs, in order by rank (first is first place, etc.)    
-    playerRating = ndb.PickleProperty() #Dictionary of player IDs mapped to their TrueSkill rating
-    playerMean = ndb.PickleProperty()
-    playerStandardDeviation = ndb.PickleProperty() 
+    teamsParticipating = ndb.IntegerProperty(repeated=True) #list of team IDs
+    teamRanks = ndb.IntegerProperty(repeated=True) #List of team IDs, in order by rank (first is first place, etc.)    
+    teamRating = ndb.PickleProperty() #Dictionary of team IDs mapped to their TrueSkill rating
+    teamMean = ndb.PickleProperty()
+    teamStandardDeviation = ndb.PickleProperty() 
     customProperties = ndb.PickleProperty() # Dictionary to store custom properties about the lot
 
     def hasEnded(self):
@@ -30,20 +30,20 @@ class LOTContainer():
     to do with special pickle logic in ndb.Model that prevents extra data from pickeling"""
     lot = None
     games = None
-    players = None
+    teams = None
     
     def render(self, pageName):
-        #Before we render, sort players
-        self.playersSorted = list(self.players.values())
-        self.playersSorted.sort(key=lambda p: self.lot.playerRanks.index(p.key.id()) if p.key.id() in self.lot.playerRanks else 999999)
+        #Before we render, sort team
+        self.teamsSorted = list(self.teams.values())
+        self.teamsSorted.sort(key=lambda t: self.lot.teamRanks.index(t.key.id()) if t.key.id() in self.lot.teamRanks else 999999)
         
         return get_template(pageName).render({'container': self })
     
-    def playerRankOrBlank(self, playerID):
-        if playerID not in self.lot.playerRanks:
+    def teamRankOrBlank(self, teamID):
+        if teamID not in self.lot.teamRanks:
             return ""
         else:
-            return self.lot.playerRanks.index(playerID)+1
+            return self.lot.teamRanks.index(teamID)+1
     
     
     def changed(self):
@@ -88,15 +88,13 @@ def retrieveLot(lotID):
     container.lot = lot
     container.games = list(Game.query(Game.lotID == lotID.id()))
     
-    #Load all players that are referenced by the LOT.  First, get their player IDs and remove dupes
-    pids = set(flatten([g.players for g in container.games])) | set(lot.playersParticipating) | set(lot.playerRanks)
+    #Load all teams that are referenced by the LOT.  First, get their team IDs and remove dupes
+    tids = set(flatten([g.teams for g in container.games])) | set(lot.teamsParticipating) | set(lot.teamRanks)
     
-    #logging.info("Loading lot " + str(lotID) + " got " + str(len(pids)) + " pids")
-    
-    #Turn the player IDs into Player instances
-    players = list(ndb.get_multi([ndb.Key(Player, p) for p in pids]))
+    #Turn the team IDs into Team instances
+    teams = list(ndb.get_multi([ndb.Key(Team, t) for t in tids]))
     
     #Store them as a dictionary so we can easily look them up by id later
-    container.players = dict([(p.key.id(), p) for p in players if p is not None])
+    container.teams = dict([(t.key.id(), t) for t in teams if t is not None])
     
     return container

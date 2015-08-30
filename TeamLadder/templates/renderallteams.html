@@ -19,13 +19,13 @@
 		                        <td>Rating</td>
 		                    </tr>
 		                </thead>
-		                {%for player in container.playersSorted  %}		                
+		                {%for team in container.teamsSorted  %}		                
 		                <tr>        
-		                    <td>{{ container.playerRankOrBlank(player.key.id())  }}</td>
+		                    <td>{{ container.teamRankOrBlank(team.key.id())  }}</td>
 		                    <td>
-		                        <a href="/player/playerId={{player.key.id()}}&&lotId={{container.lot.key.id()}}">{{player.name|escape}}</a>
+		                        <a href="/team/teamId={{team.key.id()}}&&lotId={{container.lot.key.id()}}">{{team.name|escape}}</a>
 		                    </td>
-		                    <td>{{ container.lot.playerRating.get(player.key.id(), 0)|int }}</td>
+		                    <td>{{ container.lot.teamRating.get(team.key.id(), 0)|int }}</td>
 		                </tr>		                
 		                {%endfor%}
 		            </table>	

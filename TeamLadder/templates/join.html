@@ -3,6 +3,39 @@
 
 <h1>Join</h1>
 
-You have successfully joined the ladder or tournament <a href="/lot/{{container.lot.key.id()}}">{{container.lot.name|escape}}</a>!
+<a href="/lot/{{container.lot.key.id()}}">Back to Ladder</a>
+
+<a href="/createteam/lotId={{container.lot.key.id()}}" class="btn btn-success pull-right">Create new team</a>
+
+<div class="pull-right">
+{% if message is not none %}
+{{message}} 
+{% endif %}
+</div>
+
+<table class="table table-bordered">
+   <thead>
+      <tr>         
+         <td><b>Past Teams</b></td>
+         <td><b>Join a new team</b></td>
+      </tr>
+   </thead>
+   <tbody id="myTable">     
+      <tr>
+         <td>
+         	{%if teams is not none%}      		     			
+		     	{%for team in teams%}
+		     		<a href="/team/teamId={{team.key.id()}}&&lotId={{container.lot.key.id()}}">{{team.name|escape}}</a>
+		  			{%if team.key.id() == player.activeTeam%}
+		  				Current
+		  			{%endif%}	
+		  			<br/>	
+				{%endfor%}
+  			{%endif%}
+         </td>
+         <td>
+         </td>
+      </tr>
+      
 
 {%endblock%}

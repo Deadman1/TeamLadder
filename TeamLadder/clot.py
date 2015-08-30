@@ -12,7 +12,7 @@ from itertools import islice
 
 
 #The template ID defines the settings used when the game is created.  You can create your own template on warlight.net and enter its ID here
-templates = [620619]
+templates = [708081]
 timeBetweenGamesInHours = 1
 InitialMean = 2000.0
 InitialStandardDeviation = 200.0
@@ -24,7 +24,7 @@ def createGames(request, container):
     Right now, this function just randomly pairs up players who aren't in a game."""
     
     # Read configuration settings for ladder
-    readConfigForMDLadder()
+    readConfigForTeamLadder()
     
     #Recent games. All players who have played each other recently, will not be paired together.
     recentGames = []
@@ -198,7 +198,7 @@ def createPlayerPairs(completePlayerListSortedByRank, playersToBeAllocatedNewGam
 
 
 """Reads configuration for MD ladder"""
-def readConfigForMDLadder():
+def readConfigForTeamLadder():
     cfgFile = os.path.dirname(__file__) + '/config/Ladder.cfg'
     Config = ConfigParser.ConfigParser()
     Config.read(cfgFile)
@@ -210,12 +210,12 @@ def readConfigForMDLadder():
     global InitialStandardDeviation
     
     try:
-        allTemplates = Config.get("MDLadder", "templates")
-        delimiter = Config.get("MDLadder","delimiter")
+        allTemplates = Config.get("TeamLadder", "templates")
+        delimiter = Config.get("TeamLadder","delimiter")
         templates = allTemplates.split(delimiter)
-        timeBetweenGamesInHours = int(Config.get("MDLadder", "timeBetweenGamesInHours"))
-        InitialMean = float(Config.get("MDLadder", "initialMean"))
-        InitialStandardDeviation = float(Config.get("MDLadder", "initialStandardDeviation"))
+        timeBetweenGamesInHours = int(Config.get("TeamLadder", "timeBetweenGamesInHours"))
+        InitialMean = float(Config.get("TeamLadder", "initialMean"))
+        InitialStandardDeviation = float(Config.get("TeamLadder", "initialStandardDeviation"))
     except:
         raise Exception("Failed to load MD ladder config file")
 
@@ -267,7 +267,7 @@ def updateRatingBasedOnRecentFinsihedGames(finishedGamesGroupedByWinner, contain
     
     
 def getOverriddenBonuses(templateId):
-    if templateId != 620619:
+    if templateId != 708081:
         return None
     
     cfgFile = os.path.dirname(__file__) + '/config/BonusInfo/' + str(templateId) +'.values'

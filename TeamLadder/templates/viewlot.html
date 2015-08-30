@@ -3,7 +3,7 @@
 
 {%if not container.lot.hasEnded()%}
 <a href="/leave/{{container.lot.key.id()}}" class="btn btn-danger pull-right">Leave Ladder</a>
-<a href="/join/{{container.lot.key.id()}}" class="btn btn-success pull-right">Join Ladder</a>
+<a href="/join/lotId={{container.lot.key.id()}}" class="btn btn-success pull-right">Join Ladder</a>
 {%endif%}
 
 

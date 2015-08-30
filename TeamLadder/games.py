@@ -11,7 +11,7 @@ class Game(ndb.Model):
     The __repr__ function is just used for debugging."""
     
     lotID = ndb.IntegerProperty(required=True, indexed=True)
-    players = ndb.IntegerProperty(repeated=True)
+    teams = ndb.IntegerProperty(repeated=True)
     winner = ndb.IntegerProperty()
     wlnetGameID = ndb.IntegerProperty(required=True, indexed=True)
     name = ndb.StringProperty()
@@ -21,25 +21,34 @@ class Game(ndb.Model):
     HasRatingChangedDueToResult = ndb.BooleanProperty(default=False) #Set to true once rating/ranks on the ladder are updated, according to the result 
 
     def __repr__(self):
-        return str(self.key.id()) + ", wlnetGameID=" + str(self.wlnetGameID) + ", players=" + unicode(self.players)
+        return str(self.key.id()) + ", wlnetGameID=" + str(self.wlnetGameID) + ", players=" + unicode(self.teams)
 
 
-def createGame(request, container, players, templateID, overriddenBonuses=None):
+def createGame(request, container, teams, templateID, overriddenBonuses=None):
     if overriddenBonuses == None:
         overriddenBonuses = []
     
     """This calls the WarLight.net API to create a game, and then creates the Game rows in the local DB"""
-    gameName = 'Randomized ladder : ' +  ' vs '.join([p.name for p in players])
+    gameName = '3v3 ladder : ' +  ' vs '.join([t.name for t in teams])
     gameName = gameName[:40] + "..."
     
     config = getClotConfig()
+    
+    if( teams is None or len(teams) !=2) :
+        return
+    
+    players = []
+    for i, team in enumerate(teams):
+        for player in team:
+            players.append({'token': player.inviteToken, 'team': i})
+    
     apiRetStr = postToApi('/API/CreateGame', json.dumps( { 
                                  'hostEmail': config.adminEmail, 
                                  'hostAPIToken': config.adminApiToken,
                                  'templateID': templateID,
                                  'gameName': gameName,
                                  'personalMessage': 'Created by the CLOT at http://' + urlparse.urlparse(request.url).netloc,
-                                 'players': [ { 'token': p.inviteToken, 'team': 'None' } for p in players],
+                                 'players': players,
                                  'overriddenBonuses': overriddenBonuses
                                  }))
     apiRet = json.loads(apiRetStr)
@@ -49,13 +58,13 @@ def createGame(request, container, players, templateID, overriddenBonuses=None):
         raise Exception("CreateGame returned error: " + apiRet.get('error', apiRetStr))
     
     g = Game(lotID=container.lot.key.id(), wlnetGameID=gid, name=gameName)
-    g.players = [p.key.id() for p in players]
+    g.teams = [t.key.id() for t in teams]
     g.put()
     
     #Ensure we update the container with the new game.  The players may already be there, but put them in in case they're not
     container.games.append(g)
-    for p in players:
-        container.players[p.key.id()] = p
+    for t in teams:
+        container.teams[t.key.id()] = t
     
     logging.info("Created game " + str(g.key.id()) + " '" + gameName + "', wlnetGameID=" + str(gid) + "', TemplateID=" + str(templateID))
     

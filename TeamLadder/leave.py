@@ -9,7 +9,7 @@ import lot
 class LeavePage(BaseHandler):
     def get(self, lotID):
         if 'authenticatedtoken' not in self.session:
-            return self.redirect('http://' + wlnet + "/CLOT/Auth?p=314032996&state=leave/" + str(long(lotID)))
+            return self.redirect('http://' + wlnet + "/CLOT/Auth?p=2428496679&state=leave/" + str(long(lotID)))
         
         container = lot.getLot(lotID)
         inviteToken = self.session['authenticatedtoken']
