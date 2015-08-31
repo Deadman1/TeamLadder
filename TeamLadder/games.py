@@ -18,7 +18,8 @@ class Game(ndb.Model):
     dateCreated = ndb.DateTimeProperty(auto_now_add=True)
     dateEnded = ndb.DateTimeProperty()
     deleted = ndb.BooleanProperty(default=False) #Set to true if this game was deleted over on WarLight.
-    HasRatingChangedDueToResult = ndb.BooleanProperty(default=False) #Set to true once rating/ranks on the ladder are updated, according to the result 
+    HasRatingChangedDueToResult = ndb.BooleanProperty(default=False) #Set to true once rating/ranks on the ladder are updated, according to the result
+    WarlightToClotTeamIdMap = ndb.PickleProperty() # empty dict to store warlight friendly team id(eg 1,2,3..) to CLOT team ID (533453234234342) 
 
     def __repr__(self):
         return str(self.key.id()) + ", wlnetGameID=" + str(self.wlnetGameID) + ", players=" + unicode(self.teams)
@@ -35,10 +36,12 @@ def createGame(request, container, teams, templateID):
         return
     
     players = []
-    for team in teams:
+    WLtoClotTeamIdMap = {}
+    for i,team in enumerate(teams):
+        WLtoClotTeamIdMap[str(i)] = team.key.id() 
         for pId in team.players:
             player = Player.get_by_id(pId)
-            players.append({'token': player.inviteToken, 'team': team.key.id()})
+            players.append({'token': player.inviteToken, 'team': str(i)})
     
     apiRetStr = postToApi('/API/CreateGame', json.dumps( { 
                                  'hostEmail': config.adminEmail, 
@@ -48,6 +51,7 @@ def createGame(request, container, teams, templateID):
                                  'personalMessage': 'Created by the CLOT at http://' + urlparse.urlparse(request.url).netloc,
                                  'players': players
                                  }))
+    
     apiRet = json.loads(apiRetStr)
     
     gid = long(apiRet.get('gameID', -1))
@@ -56,6 +60,7 @@ def createGame(request, container, teams, templateID):
     
     g = Game(lotID=container.lot.key.id(), wlnetGameID=gid, name=gameName)
     g.teams = [t.key.id() for t in teams]
+    g.WarlightToClotTeamIdMap = WLtoClotTeamIdMap
     g.put()
     
     #Ensure we update the container with the new game.  The players may already be there, but put them in in case they're not

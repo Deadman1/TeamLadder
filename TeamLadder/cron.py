@@ -48,7 +48,7 @@ def checkInProgressGames(container):
         
         if state == 'Finished':        
             #It's finished. Record the winner and save it back.
-            winner = findWinner(container, data)
+            winner = findWinner(container, data, g.WarlightToClotTeamIdMap)
             logging.info('Identified the winner of game ' + str(g.wlnetGameID) + ' is ' + unicode(winner))
             g.winner = winner.key.id()
             g.dateEnded = datetime.datetime.now()
@@ -83,14 +83,9 @@ def checkInProgressGames(container):
                 else:
                     #We deleted the game.  Mark it as deleted and finished
                     g.deleted = True
-                    g.winner = findWinnerOfDeletedGame(container, data).key.id()
+                    g.winner = findWinnerOfDeletedGame(container, data, g.WarlightToClotTeamIdMap).key.id()
                     g.put()
-                    
-                    #Also remove all teams that declined or failed to join.
-                    for teamID in set(getTeamById(container, p['state']).key.id() for p in data['players'] if p['state'] != 'Playing'):
-                        if teamID in container.lot.teamsParticipating:
-                            container.lot.teamsParticipating.remove(teamID)
-                            logging.info("Removed " + str(teamID) + " from ladder since they did not joiteamAdministrationme " + str(g.wlnetGameID))    
+                        
             else :
                 logging.info("Game " + str(g.wlnetGameID) + " is in the lobby for " + str(elapsed.days) + " days.")    
         else:
@@ -98,7 +93,7 @@ def checkInProgressGames(container):
             logging.info('Game ' + str(g.wlnetGameID) + ' is not finished, state=' + state + ', numTurns=' + data['numberOfTurns'])
 
 
-def findWinner(container, data):
+def findWinner(container, data, WarlightToClotTeamIdMap):
     """Simple helper function to return the Team which won the game.  This takes json data returned by the GameFeed 
     API.  We just look for a player with the "won" state and then retrieve their Team instance from the database"""
     winners = filter(lambda p: p['state'] == 'Won', data['players'])
@@ -109,10 +104,12 @@ def findWinner(container, data):
     else:
         winningTeamId = winners[0]["team"]
     
-    return getTeamById(container, winningTeamId)
+    teamId = WarlightToClotTeamIdMap[winningTeamId]
+    
+    return getTeamById(container, teamId)
 
 
-def findWinnerOfDeletedGame(container, data):
+def findWinnerOfDeletedGame(container, data, WarlightToClotTeamIdMap):
     """Simple helper function to return the Team which should be declared the winner of a game that never began.
     If it didn't begin, it's because someone either didn't join the game in time or declined it.  They'll be considered
     the loser, so whoever joined is the winner by default."""
@@ -128,7 +125,13 @@ def findWinnerOfDeletedGame(container, data):
             else:
                 loserTeamId = random.choice(all)["team"]
     
-    return getTeamById(container, loserTeamId)
+    teams = WarlightToClotTeamIdMap.keys()
+    teams.remove(loserTeamId)
+    winningTeamId = teams[0]
+    
+    teamId = WarlightToClotTeamIdMap[winningTeamId]
+        
+    return getTeamById(container, teamId)
 
 
 def getTeamById(container, winningTeamId):
