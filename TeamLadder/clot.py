@@ -1,9 +1,9 @@
 ﻿from games import createGame
 from main import flatten
+from random import choice
 
 import ConfigParser
 import logging
-from random import choice, randrange
 import os.path
 from datetime import datetime
 from TrueSkill.trueskill import Rating, rate_1vs1
@@ -12,7 +12,7 @@ from itertools import islice
 
 
 #The template ID defines the settings used when the game is created.  You can create your own template on warlight.net and enter its ID here
-templates = [708081]
+template = 708081
 timeBetweenGamesInHours = 1
 InitialMean = 2000.0
 InitialStandardDeviation = 200.0
@@ -26,7 +26,7 @@ def createGames(request, container):
     # Read configuration settings for ladder
     readConfigForTeamLadder()
     
-    #Recent games. All players who have played each other recently, will not be paired together.
+    #Recent games. All teams who have played each other recently, will not be paired together.
     recentGames = []
     for g in container.games:
         delta = (datetime.now() - g.dateCreated)
@@ -39,34 +39,29 @@ def createGames(request, container):
     activeGameIDs = dict([[g.key.id(), g] for g in activeGames])
     logging.info("Active games: " + unicode(activeGameIDs))
     
-    #Throw all of the player IDs that are in these ongoing games into a list
-    playerIDsInActiveGames = flatten([g.players for g in activeGames])
+    #Throw all of the team IDs that are in these ongoing games into a list
+    teamIDsInActiveGames = flatten([g.teams for g in activeGames])
     
-    # Map of {player:gameCount}
-    activeGameCountForPlayer = {}
-    for p in playerIDsInActiveGames:        
-        activeGameCountForPlayer[p] = activeGameCountForPlayer.get(p, 0) + 1
+    # Map of {team:gameCount}
+    activeGameCountForTeam = {}
+    for tId in teamIDsInActiveGames:        
+        activeGameCountForTeam[tId] = activeGameCountForTeam.get(tId, 0) + 1
     
-    # Map of {player:NumOfGamesToBeAllotted}     
-    playersToBeAllocatedNewGames = {}
-    for p in container.lot.playersParticipating:
-        player = container.players[p]
-        newGames = player.numberOfGamesAtOnce - activeGameCountForPlayer.get(p, 0)
-        playersToBeAllocatedNewGames[p] = newGames
+    # Map of {team:NumOfGamesToBeAllotted}     
+    teamsToBeAllocatedNewGames = {}
+    for t in container.lot.teamsParticipating:
+        team = container.teams[t]
+        newGames = team.numberOfGamesAtOnce - activeGameCountForTeam.get(t, 0)
+        teamsToBeAllocatedNewGames[t] = newGames
         
-    logging.info("Games to be allotted: " + str(playersToBeAllocatedNewGames))
+    logging.info("Games to be allotted: " + str(teamsToBeAllocatedNewGames))
     
-    #Create a game for everyone not in a game.
-    #From a list of templates, a random one is picked for each game
+    #Create a game for every team not in a game.    
     gamesCreated = []
-    for pair in createPlayerPairs(container.lot.playerRanks, playersToBeAllocatedNewGames, recentGames):
-        chosenTemplateId = int(choice(templates))
-        overriddenBonuses = getOverriddenBonuses(chosenTemplateId)
-        players = [container.players[p] for p in pair]
-        g = createGame(request, container, players, chosenTemplateId, overriddenBonuses)
+    for pair in createTeamPairs(container.lot.teamRanks, teamsToBeAllocatedNewGames, recentGames):
+        teams = [container.teams[p] for p in pair]
+        g = createGame(request, container, teams, template)
         gamesCreated.append(g)
-        
-        logging.info("Overridden Bonuses for game " + unicode(g) + " : " + str(overriddenBonuses))
         
     logging.info("Created games " + unicode(','.join([unicode(g) for g in gamesCreated])))
 
@@ -80,26 +75,26 @@ def setRanks(container):
     finishedGames = [g for g in container.games if g.winner != None and g.HasRatingChangedDueToResult ==False]
     
     #update ratings in the container object
-    updateRatingBasedOnRecentFinsihedGames(finishedGames, container)
+    updateRatingBasedOnRecentFinishedGames(finishedGames, container)
     
     #Map this from Player.query() to ensure we have an entry for every player, even those with no wins(assign default rating if none exists)
-    playersMappedToRating = {}
-    playersMappedToMean = {}
-    playersMappedToStandardDeviation = {}
+    teamsMappedToRating = {}
+    teamsMappedToMean = {}
+    teamsMappedToStandardDeviation = {}
     
-    for p in container.players.values():
-        playersMappedToRating[p.key.id()] = container.lot.playerRating.get(p.key.id(), computeRating(InitialMean, InitialStandardDeviation))
-        playersMappedToMean[p.key.id()] = container.lot.playerMean.get(p.key.id(), InitialMean)
-        playersMappedToStandardDeviation[p.key.id()] = container.lot.playerStandardDeviation.get(p.key.id(), InitialStandardDeviation)    
+    for t in container.teams.values():
+        teamsMappedToRating[t.key.id()] = container.lot.teamRating.get(t.key.id(), computeRating(InitialMean, InitialStandardDeviation))
+        teamsMappedToMean[t.key.id()] = container.lot.teamMean.get(t.key.id(), InitialMean)
+        teamsMappedToStandardDeviation[t.key.id()] = container.lot.teamStandardDeviation.get(t.key.id(), InitialStandardDeviation)    
        
-    #sort by player rating.
-    sortedPlayersByRating = sorted(playersMappedToRating.items(), key=operator.itemgetter(1), reverse=True)
+    #sort by team rating.
+    sortedTeamsByRating = sorted(teamsMappedToRating.items(), key=operator.itemgetter(1), reverse=True)
     
-    #Store the player IDs back into the LOT object
-    container.lot.playerRanks = [p[0] for p in sortedPlayersByRating]
-    container.lot.playerMean = playersMappedToMean
-    container.lot.playerStandardDeviation = playersMappedToStandardDeviation
-    container.lot.playerRating = playersMappedToRating
+    #Store the team IDs back into the LOT object
+    container.lot.teamRanks = [t[0] for t in sortedTeamsByRating]
+    container.lot.teamMean = teamsMappedToMean
+    container.lot.teamStandardDeviation = teamsMappedToStandardDeviation
+    container.lot.teamRating = teamsMappedToRating
     
     allGames = [g for g in container.games]
     
@@ -119,82 +114,81 @@ def gameFailedToStart(elapsed):
     return elapsed.days >= 3
 
 
-""" This method creates pairs between players, so that games can                   be created for each pair.
-For a player with rank r, the algorithm creates a pair randomly with another player between rank r-10 to r+10.
-It begins from rank 1, and picks a player till rank 10. It recurses till the bottom most rank looking at the next 10 players every time.
-Since a player got considered when the person 10 ranks above him was getting an opponent, r-10 to r+10 all are possible candidates.
-There is also a restriction that players who have played each other recently cannot play each other.
+""" This method creates pairs between teams, so that games can be created for each pair.
+For a team with rank r, the algorithm creates a pair randomly with another team between rank r-10 to r+10.
+It begins from rank 1, and picks a team till rank 10. It recurses till the bottom most rank looking at the next 10 teams every time.
+Since a team got considered when the team 10 ranks above them was getting an opponent, r-10 to r+10 all are possible candidates.
+There is also a restriction that teams who have played each other recently cannot play each other.
 """
-def createPlayerPairs(completePlayerListSortedByRank, playersToBeAllocatedNewGamesMap, recentGames):
-    eligiblePlayersSortedByRank = []
-    for player in completePlayerListSortedByRank:
-        for p in playersToBeAllocatedNewGamesMap.keys():
-            if player == p:
-                eligiblePlayersSortedByRank.append(p)
+def createTeamPairs(completeTeamListSortedByRank, teamsToBeAllocatedNewGamesMap, recentGames):
+    eligibleTeamsSortedByRank = []
+    for team in completeTeamListSortedByRank:
+        for t in teamsToBeAllocatedNewGamesMap.keys():
+            if team == t:
+                eligibleTeamsSortedByRank.append(t)
     
-    # Dict containing each player as key, and list of players they have played as value
-    # {p1:[p2,p3]}
+    # Dict containing each team as key, and list of teams they have played as value
+    # {t1:[t2,t3]}
     recentMatchups = {}
     
     for game in recentGames:
-        p1 = game.players[0]
-        p2 = game.players[1]
+        t1 = game.teams[0]
+        t2 = game.teams[1]
         
-        recentMatchups.setdefault(p1, set()).add(p2)
-        recentMatchups.setdefault(p2, set()).add(p1)
+        recentMatchups.setdefault(t1, set()).add(t2)
+        recentMatchups.setdefault(t2, set()).add(t1)
     
-    """ Groups the list of players into pairs.  
-    However if the two players in a pair have played each other recently, then a different pair is formed"""
-    numOfPlayers = len(eligiblePlayersSortedByRank)
+    """ Groups the list of teams into pairs.  
+    However if the two teams in a pair have played each other recently, then a different pair is formed"""
+    numOfTeams = len(eligibleTeamsSortedByRank)
     
-    # Pairs of players to be returned
-    playerPairs = []
+    # Pairs of teams to be returned
+    teamPairs = []
     
-    for i in range(1, numOfPlayers):
-        firstPlayer = eligiblePlayersSortedByRank[i-1]
+    for i in range(1, numOfTeams):
+        firstTeam = eligibleTeamsSortedByRank[i-1]
 
         # find possible opponents with a similar rank(currently 10 above or 10 below)
         start = max(0, i-10)
-        possibleOpponents = list(islice(eligiblePlayersSortedByRank, start, i+10))
+        possibleOpponents = list(islice(eligibleTeamsSortedByRank, start, i+10))
         
-        # player cannot play himself
-        possibleOpponents.remove(firstPlayer)
+        # team cannot play itself
+        possibleOpponents.remove(firstTeam)
         
         eligibleOpponents = list(possibleOpponents)
         for opponent in possibleOpponents:
             # opponent has already been allotted max number of games.
-            if playersToBeAllocatedNewGamesMap[opponent] == 0:
+            if teamsToBeAllocatedNewGamesMap[opponent] == 0:
                 eligibleOpponents.remove(opponent)
                 continue
         
             # They have already played recently    
-            if recentMatchups != None and firstPlayer in recentMatchups.keys() and opponent in recentMatchups[firstPlayer]:                
+            if recentMatchups != None and firstTeam in recentMatchups.keys() and opponent in recentMatchups[firstTeam]:                
                 eligibleOpponents.remove(opponent)
                 continue
         
-        # Find opponents till no more games are to be allocated for this player
-        while playersToBeAllocatedNewGamesMap[firstPlayer] != 0:                
+        # Find opponents till no more games are to be allocated for this team
+        while teamsToBeAllocatedNewGamesMap[firstTeam] != 0:                
             if len(eligibleOpponents) ==0:
                 # No suitable opponent found
                 break    
             
             # randomly pick the opponent 
-            secPlayer = choice(eligibleOpponents)
+            secTeam = choice(eligibleOpponents)
             
-            playersToBeAllocatedNewGamesMap[firstPlayer] = playersToBeAllocatedNewGamesMap[firstPlayer] - 1
-            playersToBeAllocatedNewGamesMap[secPlayer] = playersToBeAllocatedNewGamesMap[secPlayer] - 1
+            teamsToBeAllocatedNewGamesMap[firstTeam] -= 1
+            teamsToBeAllocatedNewGamesMap[secTeam] -= 1
             
-            playerPairs.append([firstPlayer, secPlayer])
+            teamPairs.append([firstTeam, secTeam])
             
-            # remove secPlayer as possible opponent for further game allocations
-            eligibleOpponents.remove(secPlayer)
+            # remove secTeam as possible opponent for further game allocations
+            eligibleOpponents.remove(secTeam)
+                        
+            # also add this to recent match-ups
+            recentMatchups.setdefault(firstTeam, set()).add(secTeam)
+            recentMatchups.setdefault(secTeam, set()).add(firstTeam)
             
-            
-            # also add this to recent matchups
-            recentMatchups.setdefault(firstPlayer, set()).add(secPlayer)
-            recentMatchups.setdefault(secPlayer, set()).add(firstPlayer)
-            
-    return playerPairs
+    return teamPairs
 
 
 """Reads configuration for MD ladder"""
@@ -217,20 +211,20 @@ def readConfigForTeamLadder():
         InitialMean = float(Config.get("TeamLadder", "initialMean"))
         InitialStandardDeviation = float(Config.get("TeamLadder", "initialStandardDeviation"))
     except:
-        raise Exception("Failed to load MD ladder config file")
+        raise Exception("Failed to load Team ladder config file")
 
 """ Given a mean and a standardDeviation, the rating is calculated as """
 def computeRating(mean, standardDeviation):
     return mean - standardDeviation * 3
 
 
-def updateRatingBasedOnRecentFinsihedGames(finishedGamesGroupedByWinner, container):
-    standardDeviationDict = container.lot.playerStandardDeviation
-    meanDict = container.lot.playerMean
-    ratingdict = container.lot.playerRating
+def updateRatingBasedOnRecentFinishedGames(finishedGamesGroupedByWinner, container):
+    standardDeviationDict = container.lot.teamStandardDeviation
+    meanDict = container.lot.teamMean
+    ratingdict = container.lot.teamRating
     
     for game in finishedGamesGroupedByWinner:
-        player1, player2 = game.players
+        player1, player2 = game.teams
         winnerId = game.winner
         loserId = None
         if winnerId == player1:
@@ -264,27 +258,4 @@ def updateRatingBasedOnRecentFinsihedGames(finishedGamesGroupedByWinner, contain
     container.lot.playerRating = ratingdict
     
     logging.info('Ratings updated based on game results')    
-    
-    
-def getOverriddenBonuses(templateId):
-    if templateId != 708081:
-        return None
-    
-    cfgFile = os.path.dirname(__file__) + '/config/BonusInfo/' + str(templateId) +'.values'
-    Config = ConfigParser.ConfigParser()
-    Config.optionxform = str   
-    Config.read(cfgFile)
-    
-    try:        
-        allBonuses = dict(Config.items('Bonuses'))
-        for region in allBonuses.keys():
-            bonusValue = int(allBonuses[region])
-            
-            # Set it to a new value of v-1 or v or v+1
-            allBonuses[region] = randrange(bonusValue-1, bonusValue+2)
-        
-        overriddenBonuses = [{'bonusName' : region, 'value' : bonusValue} for region, bonusValue in allBonuses.iteritems()]
-        logging.info(str(overriddenBonuses))    
-        return overriddenBonuses
-    except:
-        raise Exception("Failed to load bonus config file for the template : " + str(templateId))
+  

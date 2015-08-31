@@ -9,6 +9,7 @@ import cron
 import random
 import string
 import lot
+from teams import Team
 
 class TestPage(BaseHandler):
     def renderPage(self, lotID, message):
@@ -31,10 +32,13 @@ class TestPage(BaseHandler):
         if 'ClearData' in self.request.POST:
             #User clicked Clear Data, delete all games and players
             ndb.delete_multi([o.key for o in Game.query(Game.lotID == container.lot.key.id())])
-            container.lot.playerRanks = []
-            container.lot.playerRating = {}
-            container.lot.playerMean = {}
-            container.lot.playerStandardDeviation = {}
+            ndb.delete_multi([o.key for o in Player.query()])
+            ndb.delete_multi([o.key for o in Team.query()])            
+            container.lot.teamRanks = []
+            container.lot.teamRating = {}
+            container.lot.teamMean = {}
+            container.lot.teamStandardDeviation = {}
+            container.lot.teamsParticipating = []
             container.lot.put()
             container.changed()
             memcache.flush_all()
@@ -44,19 +48,38 @@ class TestPage(BaseHandler):
             start = datetime.now()
             cron.execute(self.request, container)
             TestPage.renderPage(self, lotID, 'Cron finished in ' + unicode(datetime.now() - start))        
-        elif 'AddPlayers' in self.request.POST:
-            #Add some dummy player data. It won't work on warlight.net of course, but if TestMode is enabled it won't ever be passed there.   Just be sure and delete it before disabling TestMode.
-            numPlayers = long(self.request.POST["NumPlayers"])
+        elif 'AddTeams' in self.request.POST:
+            #Add some dummy team data. It won't work on warlight.net of course, but if TestMode is enabled it won't ever be passed there.   Just be sure and delete it before disabling TestMode.
+            numTeams = long(self.request.POST["NumTeams"])
             
-            for z in range(numPlayers):
-                name = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(5))
-                p = Player(name=name, inviteToken=name, color="#0000FF", customProperties = {}, numberOfGamesAtOnce=2)
-                p.put()
-                container.lot.playersParticipating.append(p.key.id())
+            for z in range(numTeams):                
+                players = []
+                for i in range(0,2):
+                    name = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(5))                
+                    p = Player(name=name, inviteToken=name, color="#0000FF", customProperties = {})
+                    p.teams=[]
+                    p.put()
+                    players.append(p)
+                    
+                teamName = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(5))  
+                team = Team(name = teamName, customProperties = {}, numberOfGamesAtOnce=3, 
+                            teamLeader= players[0].key.id())
+                team.put()
+                
+                
+                for player in players:
+                    team.players.append(player.key.id())
+                    player.teams.append(team.key.id())
+                    player.totalTeams += 1
+                    player.put()
+                
+                team.put()
+                
+                container.lot.teamsParticipating.append(team.key.id())
             
             container.lot.put()
             container.changed()
-            TestPage.renderPage(self, lotID, 'Added ' + str(numPlayers) + ' fake players')        
+            TestPage.renderPage(self, lotID, 'Added ' + str(numTeams) + ' fake teams')        
         elif 'FlushCache' in self.request.POST:
             if memcache.flush_all():
                 TestPage.renderPage(self, lotID, 'Deleted everything from cache')

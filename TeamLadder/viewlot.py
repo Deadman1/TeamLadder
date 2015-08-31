@@ -10,7 +10,7 @@ class ViewLotPage(BaseHandler):
         if 'authenticatedtoken' in self.session:
             inviteToken = self.session['authenticatedtoken']
             currentPlayer = Player.query(Player.inviteToken == inviteToken).get()
-            if currentPlayer.activeTeam is not None:
+            if currentPlayer is not None and currentPlayer.activeTeam is not None:
                 currentTeam = Team.get_by_id(currentPlayer.activeTeam)
         
         container = lot.getLot(lotID)

@@ -24,10 +24,7 @@ class Game(ndb.Model):
         return str(self.key.id()) + ", wlnetGameID=" + str(self.wlnetGameID) + ", players=" + unicode(self.teams)
 
 
-def createGame(request, container, teams, templateID, overriddenBonuses=None):
-    if overriddenBonuses == None:
-        overriddenBonuses = []
-    
+def createGame(request, container, teams, templateID):
     """This calls the WarLight.net API to create a game, and then creates the Game rows in the local DB"""
     gameName = '3v3 ladder : ' +  ' vs '.join([t.name for t in teams])
     gameName = gameName[:40] + "..."
@@ -38,9 +35,10 @@ def createGame(request, container, teams, templateID, overriddenBonuses=None):
         return
     
     players = []
-    for i, team in enumerate(teams):
-        for player in team:
-            players.append({'token': player.inviteToken, 'team': i})
+    for team in teams:
+        for pId in team.players:
+            player = Player.get_by_id(pId)
+            players.append({'token': player.inviteToken, 'team': team.key.id()})
     
     apiRetStr = postToApi('/API/CreateGame', json.dumps( { 
                                  'hostEmail': config.adminEmail, 
@@ -48,8 +46,7 @@ def createGame(request, container, teams, templateID, overriddenBonuses=None):
                                  'templateID': templateID,
                                  'gameName': gameName,
                                  'personalMessage': 'Created by the CLOT at http://' + urlparse.urlparse(request.url).netloc,
-                                 'players': players,
-                                 'overriddenBonuses': overriddenBonuses
+                                 'players': players
                                  }))
     apiRet = json.loads(apiRetStr)
     
@@ -73,3 +70,4 @@ def createGame(request, container, teams, templateID, overriddenBonuses=None):
 
 from api import postToApi
 from main import getClotConfig
+from players import Player

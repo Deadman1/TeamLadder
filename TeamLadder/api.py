@@ -11,7 +11,7 @@ import json
 # makes will be intercepted and dummy data will be returned.  This is useful
 # for testing your code before you release it to the public.  Make sure to 
 # change this back to False before releasing your app.
-TestMode = False  
+TestMode = True  
 
 wlnet = 'warlight.net'
  
@@ -54,11 +54,23 @@ def testModeApi(api, postData):
         #When we simulate GameFeed, always return that the game is finished. Pick a winner randomly.  We access the Game table to find out which players are involved
         wlnetGameID = long(api[21:])
         game = Game.query(Game.wlnetGameID == wlnetGameID).get()
-        players = ndb.get_multi([ ndb.Key(Player, p) for p in game.players])
-        winner = players[randint(0, len(players) - 1)] #pick a winner randomly
+        teams = ndb.get_multi([ ndb.Key(Team, p) for p in game.teams])
+        winner = teams[randint(0, len(teams) - 1)] #pick a winner randomly
+    
+        playersJSON = []
+        for t in teams:
+            if t == winner:
+                state = "Won"
+            else:
+                state = "SurrenderAccepted"
+                
+            for pId in t.players:
+                player = Player.get_by_id(pId)
+                playersJSON.append({ "id": player.inviteToken, "isAI": "False", "state": state, "team" : t.key.id() })
+             
     
         return json.dumps({ "id": wlnetGameID, "state": "Finished", "name": game.name, "numberOfTurns": randint(7, 14), 
-                         "players": [{ "id": p.inviteToken, "isAI": "False", "state": "Won" if p == winner else "SurrenderAccepted" } for p in players] })
+                         "players": playersJSON })
 
     elif api == '/API/ValidateInviteToken':
         return json.dumps({ "tokenIsValid": "", "name": "Fake " + postDataDict["Token"][0], "isMember": "True", "color": "#FF0000", "tagline": "Fake player created by TestMode=True", "clotpass": "fake" })
@@ -75,3 +87,4 @@ def testModeApi(api, postData):
 from main import getClotConfig
 from games import Game
 from players import Player
+from teams import Team

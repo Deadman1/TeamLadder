@@ -22,7 +22,12 @@ class LeavePage(BaseHandler):
         
         #When they leave, remove their active team from this lot
         if player.activeTeam is not None:  
-            team = Team.get_by_id(player.activeTeam)      
+            team = Team.get_by_id(player.activeTeam)
+            team.isActive = False
+            team.put()
+            player.activeTeam = None
+            player.put()
+                        
             if team.key.id() in container.lot.teamsParticipating:
                 container.lot.teamsParticipating.remove(team.key.id())
                 container.lot.put()
