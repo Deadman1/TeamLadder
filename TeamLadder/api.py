@@ -11,7 +11,7 @@ import json
 # makes will be intercepted and dummy data will be returned.  This is useful
 # for testing your code before you release it to the public.  Make sure to 
 # change this back to False before releasing your app.
-TestMode = True  
+TestMode = False  
 
 wlnet = 'warlight.net'
  
