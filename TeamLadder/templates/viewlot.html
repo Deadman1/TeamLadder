@@ -2,26 +2,26 @@
 {%block body%}
 
 {%if not container.lot.hasEnded()%}
-<a href="/leave/{{container.lot.key.id()}}" class="btn btn-danger pull-right">Leave Ladder</a>
-<a href="/join/lotId={{container.lot.key.id()}}" class="btn btn-success pull-right">Join Ladder</a>
+<a href="/leave/lotId={{container.lot.key.id()}}" class="btn btn-danger pull-right">Leave Ladder</a>
+<a href="/teamAdministration/lotId={{container.lot.key.id()}}" class="btn btn-success pull-right">Join Ladder</a>
 {%endif%}
 
 
 <span>
-{%if currentPlayer is not none%}
+{%if currentTeam is not none%}
 <table class="pull-right border">
    <tr>
       <td> Choose number of games</td>
       <td style="padding-left:10px; padding-right:30px">
          <div class="dropdown">
             <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-expanded="true">
-            {{currentPlayer.numberOfGamesAtOnce}}
+            {{currentTeam.numberOfGamesAtOnce}}
             <span class="caret"></span>
             </button>
             <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
                {%for i in range(1,10) %}
                <li role="presentation"><a role="menuitem" tabindex="-1" 
-                  href="/choice/playerId={{currentPlayer.key.id()}}&&lotId={{container.lot.key.id()}}&&numberOfGames={{i}}">{{i}}</a></li>
+                  href="/choice/teamId={{currentTeam.key.id()}}&&lotId={{container.lot.key.id()}}&&numberOfGames={{i}}">{{i}}</a></li>
                {%endfor%}
             </ul>
          </div>         

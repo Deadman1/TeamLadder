@@ -1,6 +1,7 @@
 ﻿from main import BaseHandler, get_template
 from players import Player
 from api import wlnet
+from teams import Team
 
 import logging
 import lot
@@ -19,11 +20,14 @@ class LeavePage(BaseHandler):
         if not player:
             return self.response.write("Invite token is invalid.  Please contact the CLOT author for assistance.")
         
-        #When they leave, remove them from this lot
-        if player.key.id() in container.lot.playersParticipating:
-            container.lot.playersParticipating.remove(player.key.id())
-            container.lot.put()
-            container.changed()
-            logging.info("Player left LOT " + unicode(player))
+        #When they leave, remove their active team from this lot
+        if player.activeTeam is not None:  
+            team = Team.get_by_id(player.activeTeam)      
+            if team.key.id() in container.lot.teamsParticipating:
+                container.lot.teamsParticipating.remove(team.key.id())
+                container.lot.put()
+                container.changed()
+                logging.info("Player left LOT " + unicode(player))
+                logging.info("Removed team " + unicode(team))
         
         self.response.write(get_template('leave.html').render({ 'container': container }))

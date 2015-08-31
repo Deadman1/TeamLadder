@@ -7,7 +7,7 @@ import logging
 
 class Game(ndb.Model):
     """Represents a game.  This has its own ID local to the CLOT, but it also stores wlnetGameID which is the ID of the game on WarLight.net.
-    This also stores a winner field which contains a playerID only if the game is finished.
+    This also stores a winner field which contains a teamID only if the game is finished.
     The __repr__ function is just used for debugging."""
     
     lotID = ndb.IntegerProperty(required=True, indexed=True)

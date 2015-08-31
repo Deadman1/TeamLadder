@@ -119,7 +119,7 @@ def gameFailedToStart(elapsed):
     return elapsed.days >= 3
 
 
-""" This method creates pairs between players, so that games can be created for each pair.
+""" This method creates pairs between players, so that games can                   be created for each pair.
 For a player with rank r, the algorithm creates a pair randomly with another player between rank r-10 to r+10.
 It begins from rank 1, and picks a player till rank 10. It recurses till the bottom most rank looking at the next 10 players every time.
 Since a player got considered when the person 10 ranks above him was getting an opponent, r-10 to r+10 all are possible candidates.

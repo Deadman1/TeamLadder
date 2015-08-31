@@ -2,8 +2,8 @@
 
 from setup import SetupPage
 from home import HomePage
-from join import JoinPage, CreateTeam
-from viewplayer import PlayerPage
+from teamAdministration import JoinPage, CreateTeam, ActivateTeam, JoinTeam, LeaveTeam
+from viewteam import TeamPage
 from leave import LeavePage
 from cron import CronPage
 from test import TestPage
@@ -23,10 +23,13 @@ config['webapp2_extras.sessions'] = {
 application = webapp2.WSGIApplication([
     ('/', HomePage),
     ('/setup', SetupPage),
-    ('/join/lotId=(\d+)', JoinPage),
-    ('/createteam/lotId=(\d+)', CreateTeam),
-    ('/leave/(\d+)', LeavePage),
-    ('/player/playerId=(\d+)&&lotId=(\d+)', PlayerPage),
+    ("/teamAdministration/lotId=(\d+)", JoinPage),    
+    ('/createTeam/lotId=(\d+)', CreateTeam),
+    ('/activateTeam/lotId=(\d+)&&teamId=(\d+)', ActivateTeam),
+    ('/joinTeam/lotId=(\d+)&&teamId=(\d+)', JoinTeam),
+    ('/leaveTeam/lotId=(\d+)&&teamId=(\d+)', LeaveTeam),    
+    ('/leave/lotId=(\d+)', LeavePage),
+    ('/team/teamId=(\d+)&&lotId=(\d+)', TeamPage),
     ('/cron', CronPage),
     ('/test/(\d+)', TestPage),
     ('/addlot', AddLotPage),
@@ -34,5 +37,5 @@ application = webapp2.WSGIApplication([
     ('/login', LoginPage),
     ('/finishlot/(\d+)', FinishLotPage),
     ('/allteams/(\d+)', ViewAllTeamsPage),
-    ('/choice/playerId=(\d+)&&lotId=(\d+)&&numberOfGames=(\d+)', ChooseGamesPage)
+    ('/choice/teamId=(\d+)&&lotId=(\d+)&&numberOfGames=(\d+)', ChooseGamesPage)
 ], debug=True, config=config)

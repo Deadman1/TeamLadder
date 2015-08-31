@@ -1,41 +1,74 @@
 {%extends "templates/base.html"%}
 {%block body%}
 
-<h1>Join</h1>
+<h1>Join Ladder</h1>
 
 <a href="/lot/{{container.lot.key.id()}}">Back to Ladder</a>
 
-<a href="/createteam/lotId={{container.lot.key.id()}}" class="btn btn-success pull-right">Create new team</a>
+<a href="/createTeam/lotId={{container.lot.key.id()}}" class="btn btn-success pull-right">Create new team</a>
 
 <div class="pull-right">
-{% if message is not none %}
-{{message}} 
+{% if createTeamMessage is not none%}
+{{createTeamMessage}} 
 {% endif %}
 </div>
 
 <table class="table table-bordered">
    <thead>
       <tr>         
-         <td><b>Past Teams</b></td>
+         <td><b>My Teams</b></td>
          <td><b>Join a new team</b></td>
       </tr>
    </thead>
    <tbody id="myTable">     
       <tr>
-         <td>
-         	{%if teams is not none%}      		     			
-		     	{%for team in teams%}
-		     		<a href="/team/teamId={{team.key.id()}}&&lotId={{container.lot.key.id()}}">{{team.name|escape}}</a>
-		  			{%if team.key.id() == player.activeTeam%}
-		  				Current
-		  			{%endif%}	
-		  			<br/>	
-				{%endfor%}
-  			{%endif%}
+         <td>   
+         	<table>
+ 			  <tbody> 				      	  		     			
+		     	{%for team in myTeams%}
+		     	  <tr>
+		     		{%if team is not none%}
+			     		<td>		     		
+		     			  <a href="/leaveTeam/lotId={{container.lot.key.id()}}&&teamId={{team.key.id()}}" class="btn btn-default">Leave Team</a>
+		     			</td>
+		     			
+		     			{%if team.key.id() == player.activeTeam%}	     					     				
+			  				<td></td>
+			  				<td>		  					
+			  				  <a href="/team/teamId={{team.key.id()}}&&lotId={{container.lot.key.id()}}" class="btn-success">{{team.name|escape}}</a>
+			  				</td>
+		  				{%else %}
+		  					<td>
+	  						  <a href="/activateTeam/lotId={{container.lot.key.id()}}&&teamId={{team.key.id()}}" class="btn btn-default">Make active</a>  						
+	  						</td>
+	  						<td>
+	  						  <a href="/team/teamId={{team.key.id()}}&&lotId={{container.lot.key.id()}}">{{team.name|escape}}</a>
+	  						</td>
+			  			{%endif%}		     				  			
+	  				{%endif%}
+	  			  </tr>	  			
+				{%endfor%}				
+	  		  </tbody>
+	  		</table>	
+			{% if activateTeamMessage is not none%}
+			<br/><br/>
+				{{activateTeamMessage}} 
+			{% endif %} 			
          </td>
-         <td>
+         <td>	     			
+         	{%if allTeams is not none%}
+		     	{%for team in allTeams%}
+			     	{%if team is not none%}
+			     	<a href="/joinTeam/lotId={{container.lot.key.id()}}&&teamId={{team.key.id()}}" class="btn btn-default">Join</a>
+		     		<a href="/team/teamId={{team.key.id()}}&&lotId={{container.lot.key.id()}}">{{team.name|escape}}</a>			     		
+		     		<br/>	  							
+					{%endif%}						
+				{%endfor%}
+			{%endif%}			
          </td>
       </tr>
+ 	</tbody>
+</table>
       
 
 {%endblock%}

@@ -68,7 +68,7 @@ def checkInProgressGames(container):
                     break
             
             if clot.gameFailedToStart(elapsed) or hasEitherPlayerDeclined == True:
-                logging.info('Game ' + str(g.wlnetGameID) + " is stuck in the lobby. Marking it as a loss for anyone who didn't join and deleting it.")
+                logging.info('Game ' + str(g.wlnetGameID) + " is stuck in the lobby. Marking it as a loss for anyone who didn't joiteamAdministrationd deleting it.")
             
                 #Delete it over at warlight.net so that players know we no longer consider it a real game
                 config = getClotConfig()
@@ -86,11 +86,11 @@ def checkInProgressGames(container):
                     g.winner = findWinnerOfDeletedGame(container, data).key.id()
                     g.put()
                     
-                    #Also remove anyone that declines or fails to join from the ladder.  This is important for real-time ladders since we don't want idle people staying in forever, but you may not want this for your situation
+                    #Also remove anyone that declines or fails to joiteamAdministrationom the ladder.  This is important for real-time ladders since we don't want idle people staying in forever, but you may not want this for your situation
                     for playerID in [getPlayerByInviteToken(container, p['id']).key.id() for p in data['players'] if p['state'] != 'Playing']:
                         if playerID in container.lot.playersParticipating:
                             container.lot.playersParticipating.remove(playerID)
-                            logging.info("Removed " + str(playerID) + " from ladder since they did not join game " + str(g.wlnetGameID))    
+                            logging.info("Removed " + str(playerID) + " from ladder since they did not joiteamAdministrationme " + str(g.wlnetGameID))    
             else :
                 logging.info("Game " + str(g.wlnetGameID) + " is in the lobby for " + str(elapsed.days) + " days.")    
         else:
@@ -111,14 +111,14 @@ def findWinner(container, data):
 
 def findWinnerOfDeletedGame(container, data):
     """Simple helper function to return the Player who should be declared the winner of a game that never began.
-    If it didn't begin, it's because someone either didn't join the game or declined it.  They'll be considered
+    If it didn't begin, it's because someone either didn't joiteamAdministratione game or declined it.  They'll be considered
     the loser, so whoever joined is the winner by default."""
     
     joined = filter(lambda p: p['state'] == 'Playing', data['players'])
     if len(joined) > 0:
         return getPlayerByInviteToken(container, random.choice(joined)["id"])
     
-    """If everyone declined or failed to join, we just pick the winner randomly since the Game data structure 
+    """If everyone declined or failed to joiteamAdministratione just pick the winner randomly since the Game data structure 
     currently assumes there's always one winner."""
     return getPlayerByInviteToken(container, random.choice(data['players'])["id"])
 

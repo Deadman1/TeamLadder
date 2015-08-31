@@ -1,10 +1,11 @@
 from main import BaseHandler
 import lot
 from players import Player
+from teams import Team
 
 class ChooseGamesPage(BaseHandler):
-    def get(self, playerID, lotID, numberOfGames):
-        playerID = long(playerID)
+    def get(self, teamID, lotID, numberOfGames):
+        teamID = long(teamID)
         
         if 'authenticatedtoken' not in self.session:
             return self.redirect('/')
@@ -12,16 +13,17 @@ class ChooseGamesPage(BaseHandler):
         inviteToken = self.session['authenticatedtoken']
         player = Player.query(Player.inviteToken == inviteToken).get()
         
-        if player.key.id() != playerID :
+        if player.activeTeam != teamID :
             ''' Not the logged in user'''
             return self.redirect('/lot/'+ lotID)
         
-        container = lot.getLot(lotID) 
+        container = lot.getLot(lotID)
+        team = Team.get_by_id(teamID)       
         
         if numberOfGames != None:
-            player.numberOfGamesAtOnce = int(numberOfGames)
-            player.put()
-            container.players[player.key.id()] = player            
+            team.numberOfGamesAtOnce = int(numberOfGames)
+            team.put()
+            container.teams[team.key.id()] = team            
             container.changed()
         
-        self.redirect('/player/playerId=' + str(playerID) + '&&lotId=' + lotID)
+        self.redirect('/team/teamId=' + str(teamID) + '&&lotId=' + lotID)
