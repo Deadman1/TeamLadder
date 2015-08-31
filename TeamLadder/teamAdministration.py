@@ -13,7 +13,7 @@ class JoinBase(BaseHandler):
             ############################################### SET TO main before going live ##################################
             # main - 5015900432
             # test - 314032996
-            return self.redirect('http://' + wlnet + "/CLOT/Auth?p=2428496679&state=join/" + str(long(lotId)))
+            return self.redirect('http://' + wlnet + "/CLOT/Auth?p=2428496679&state=lot/" + str(long(lotId)))
         
         container = lot.getLot(lotId)
         inviteToken = self.session['authenticatedtoken']
@@ -74,7 +74,7 @@ class JoinBase(BaseHandler):
             ############################################### SET TO main before going live ##################################
             # main - 5015900432
             # test - 314032996
-            return self.redirect('http://' + wlnet + "/CLOT/Auth?p=2428496679&state=join/" + str(long(lotId)))
+            return self.redirect('http://' + wlnet + "/CLOT/Auth?p=2428496679&state=lot/" + str(long(lotId)))
         
         inviteToken = self.session['authenticatedtoken']
         player = Player.query(Player.inviteToken == inviteToken).get()
