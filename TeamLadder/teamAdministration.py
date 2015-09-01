@@ -91,8 +91,8 @@ class CreateTeam(JoinBase):
          
         message = None
         if player is not None:
-            if player.teams is not None and len(player.teams) == 3:
-                message = "Failed to add team. A player can be part of at most three teams."
+            if player.teams is not None and len(player.teams) == 5:
+                message = "Failed to add team. A player can be part of at most five teams."
             else:
                 team = Team(name = player.name, customProperties = {}, numberOfGamesAtOnce=3, 
                             teamLeader= player.key.id())
@@ -163,7 +163,7 @@ class JoinTeam(JoinBase):
         team = Team.get_by_id(teamId)        
         
         # Ban players who have created more than 10 teams
-        if player is not None and team is not None and len(player.teams) < 3 and player.totalTeams < 10:                  
+        if player is not None and team is not None and len(player.teams) < 5 and player.totalTeams < 10:                  
             if len(team.players) < 3:
                 player.teams.append(teamId)
                 player.totalTeams += 1

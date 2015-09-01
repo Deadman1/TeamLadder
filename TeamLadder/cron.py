@@ -18,7 +18,17 @@ class CronPage(BaseHandler):
         self.response.write("Cron complete")
 
 
+def executeSpecialTasks(container):
+    pass
+#     container.lot.teamsParticipating.remove(6263255781605376)
+#     container.lot.put()
+#     container.changed()
+#     logging.info("Remove team 6263255781605376 from teamsParticipating")
+    
+
 def execute(request, container):
+    executeSpecialTasks(container)
+    
     logging.info("Starting cron for " + container.lot.name + "...")
     checkInProgressGames(container)    
     clot.setRanks(container)
