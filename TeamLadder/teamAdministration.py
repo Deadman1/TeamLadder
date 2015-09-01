@@ -13,7 +13,7 @@ class JoinBase(BaseHandler):
             ############################################### SET TO main before going live ##################################
             # main - 5015900432
             # test - 314032996
-            return self.redirect('http://' + wlnet + "/CLOT/Auth?p=2428496679&state=lot/" + str(long(lotId)))
+            return self.redirect('http://' + wlnet + "/CLOT/Auth?p=2428496679&state=teamAdministration/lotId=" + str(long(lotId)))
         
         container = lot.getLot(lotId)
         inviteToken = self.session['authenticatedtoken']
@@ -74,7 +74,7 @@ class JoinBase(BaseHandler):
             ############################################### SET TO main before going live ##################################
             # main - 5015900432
             # test - 314032996
-            return self.redirect('http://' + wlnet + "/CLOT/Auth?p=2428496679&state=lot/" + str(long(lotId)))
+            return self.redirect('http://' + wlnet + "/CLOT/Auth?p=2428496679&state=teamAdministration/lotId=" + str(long(lotId)))
         
         inviteToken = self.session['authenticatedtoken']
         player = Player.query(Player.inviteToken == inviteToken).get()
@@ -107,7 +107,7 @@ class CreateTeam(JoinBase):
         self.renderPage(lotId, createTeamMessage=message)
        
 class ActivateTeam(JoinBase):
-    def activateTeam(self, team, lotId):
+    def activateTeam(self, team, container):
         if team is None:
             return
         
@@ -121,8 +121,6 @@ class ActivateTeam(JoinBase):
             team.isActive = teamActiveStatus
             team.put()
             
-            container = lot.getLot(lotId)
-            
             #Set them as participating in the current lot
             addIfNotPresent(container.lot.teamsParticipating, team.key.id())
             container.teams[team.key.id()] = team
@@ -135,6 +133,7 @@ class ActivateTeam(JoinBase):
         
         teamId = int(teamId)
         team = Team.get_by_id(teamId)        
+        container = lot.getLot(lotId)
         
         activateTeamMessage = "Failed to make active."
         if player is not None:        
@@ -142,10 +141,15 @@ class ActivateTeam(JoinBase):
             if previousActiveTeamId is not None:
                 previousActiveTeam = Team.get_by_id(previousActiveTeamId)
                 previousActiveTeam.isActive = False
-                previousActiveTeam.put()            
+                previousActiveTeam.put()
+                
+                if previousActiveTeamId in container.lot.teamsParticipating:
+                    container.lot.teamsParticipating.remove(previousActiveTeamId)
+                    container.lot.put()
+                    container.changed()            
                      
             player.activeTeam = teamId
-            self.activateTeam(team, lotId)                    
+            self.activateTeam(team, container)                    
             player.put()
             activateTeamMessage = "Success!"
         

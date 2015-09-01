@@ -27,11 +27,7 @@
  			  <tbody> 				      	  		     			
 		     	{%for team in myTeams%}
 		     	  <tr>
-		     		{%if team is not none%}
-			     		<td>		     		
-		     			  <a href="/leaveTeam/lotId={{container.lot.key.id()}}&&teamId={{team.key.id()}}" class="btn btn-default">Leave Team</a>
-		     			</td>
-		     			
+		     		{%if team is not none%}			     		
 		     			{%if team.key.id() == player.activeTeam%}	     					     				
 			  				<td></td>
 			  				<td>		  					
